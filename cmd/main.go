@@ -55,7 +55,7 @@ func main() {
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
 	flag.IntVar(&port, "webhook-web-port", 8443, "The webhook web port.")
 	flag.StringVar(&certsDir, "certs-directory", "/etc/webhook/certs", "The cert directory for https")
-	flag.BoolVar(&enableLeaderElection, "leader-elect", true,
+	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
 		"Enable leader election for controller manager. Enabling this will ensure there is only one active controller manager.")
 	opts := zap.Options{
 		Development: true,
