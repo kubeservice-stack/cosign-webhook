@@ -99,7 +99,7 @@ func main() {
 		mgr.GetWebhookServer().Register("/mutate", &webhook.Admission{Handler: injector.NewPodAnnotatorMutate(mgr.GetClient())})
 	*/
 
-	if err = (&wk1.CosignKey{}).SetupWebhookWithManager(mgr); err != nil {
+	if err = (&wk1.CustomCosignKey{Client: mgr.GetClient()}).SetupWebhookWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create webhook", "webhook", "CosignKey")
 		os.Exit(1)
 	}

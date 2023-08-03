@@ -31,4 +31,5 @@ var (
 	ErrInvalidCosignCRDMoreThanOne = errors.New("invalid cosignkey CRD more than one in this namespace")
 	ErrInvalidAdmissionReview      = errors.New("invalid admission review error")
 	ErrInvalidAdmissionReviewObj   = errors.New("invalid admission review object error")
+	ErrMissingCosignCRD            = errors.New("invalid cosignkey CRD not find in cluster")
 )
