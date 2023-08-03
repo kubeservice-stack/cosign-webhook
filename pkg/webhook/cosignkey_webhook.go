@@ -74,7 +74,7 @@ func (r *CustomCosignKey) ValidateCreate(ctx context.Context, obj runtime.Object
 			n.Spec.Auth,
 			err.Error()))
 	}
-	if len(allErrs) == 0 && counter == 0 {
+	if len(allErrs) == 0 && counter == 0 && len(n.Spec.Auth.Key) >= 1 {
 		return nil, nil
 	}
 	cosignkeylog.Info("validate cosignkey crd counter", "err", err, "field.ErrorList", allErrs)
