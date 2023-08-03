@@ -1,0 +1,14 @@
+apiVersion: kubeservice.cn/v1
+kind: CosignKey
+metadata:
+  name: test-cosignkey
+spec:
+  authorities:
+    key:
+    - |
+      -----BEGIN PUBLIC KEY-----
+      ......
+      -----END PUBLIC KEY-----   
+    - |
+      adfasdf
+      sdfasdf

@@ -28,7 +28,7 @@ import (
 )
 
 // log is for logging in this package.
-var cosignlog = logf.Log.WithName("cosign-webhook-resource")
+var podlog = logf.Log.WithName("pod-webhook-resource")
 
 // PodValidator validates Pods
 type PodValidator struct{}
@@ -61,7 +61,7 @@ func (v *PodValidator) validate(ctx context.Context, obj runtime.Object) (admiss
 	for _, ic := range pod.Spec.InitContainers {
 		_, err := Digest(ic.Image, opts)
 		if err != nil {
-			return nil, fmt.Errorf("Parse image Digest fail. err: ", err)
+			return nil, fmt.Errorf("Parse image Digest fail. err: %v", err)
 		}
 
 	}
@@ -69,7 +69,7 @@ func (v *PodValidator) validate(ctx context.Context, obj runtime.Object) (admiss
 	for _, ic := range pod.Spec.Containers {
 		_, err := Digest(ic.Image, opts)
 		if err != nil {
-			return nil, fmt.Errorf("Parse image Digest fail. err: ", err)
+			return nil, fmt.Errorf("Parse image Digest fail. err: %v", err)
 		}
 	}
 

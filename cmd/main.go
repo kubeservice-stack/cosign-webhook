@@ -24,25 +24,23 @@ import (
 	// to ensure that exec-entrypoint and run can make use of them.
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
-	wk "github.com/kubeservice-stack/cosign-webhook/pkg/webhook"
-	corev1 "k8s.io/api/core/v1"
+	wk1 "github.com/kubeservice-stack/cosign-webhook/pkg/webhook"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 )
 
 var (
 	scheme   = runtime.NewScheme()
-	setupLog = ctrl.Log.WithName("webhook-setup")
+	setupLog = ctrl.Log.WithName("setup")
 )
 
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
-	utilruntime.Must(corev1.AddToScheme(scheme))
+	utilruntime.Must(wk1.AddToScheme(scheme))
 }
 
 func main() {
@@ -89,12 +87,20 @@ func main() {
 		setupLog.Error(err, "unable to start manager")
 		os.Exit(1)
 	}
+	/*
+		if err := builder.WebhookManagedBy(mgr).
+			For(&corev1.Pod{}).
+			WithValidator(&wk.PodValidator{}).
+			Complete(); err != nil {
+			setupLog.Error(err, "unable to create webhook", "webhook", "Pod")
+			os.Exit(1)
+		}
 
-	if err := builder.WebhookManagedBy(mgr).
-		For(&corev1.Pod{}).
-		WithValidator(&wk.PodValidator{}).
-		Complete(); err != nil {
-		setupLog.Error(err, "unable to create webhook", "webhook", "Pod")
+		mgr.GetWebhookServer().Register("/mutate", &webhook.Admission{Handler: injector.NewPodAnnotatorMutate(mgr.GetClient())})
+	*/
+
+	if err = (&wk1.CosignKey{}).SetupWebhookWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create webhook", "webhook", "CosignKey")
 		os.Exit(1)
 	}
 
