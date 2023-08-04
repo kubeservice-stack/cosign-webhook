@@ -1,0 +1,13 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: cosignkey-webhook-server-cert
+  namespace: cosign
+spec:
+  dnsNames:
+  - cosignkey-webhook-service.cosign.svc
+  - cosignkey-webhook-service.cosign.svc.cluster.local
+  issuerRef:
+    kind: Issuer
+    name: selfsigned-issuer
+  secretName: cosignkey-webhook-server-cert

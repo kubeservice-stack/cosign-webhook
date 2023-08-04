@@ -1,0 +1,30 @@
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: validating-webhook-configuration
+  namespace: cosign
+  labels:
+    app: validating-webhook-configuration
+  annotations:
+    cert-manager.io/inject-ca-from: cosign/cosignkey-webhook-server-cert
+webhooks:
+  - name: validating-webhook-configuration.cosign.svc
+    admissionReviewVersions: ["v1","v1beta1"]
+    clientConfig:
+      service:
+        name: cosignkey-webhook-service
+        namespace: cosign
+        path: /validate-kubeservice-cn-v1-cosignkey
+        port: 443
+    rules:
+      - operations: ["CREATE", "UPDATE"]
+        apiGroups: ["kubeservice.cm"]
+        apiVersions: ["v1"]
+        resources: ["cosignkeys", "cosignkeys/*"]
+        scope: "Namespaced"
+    sideEffects: None
+    timeoutSeconds: 15
+    failurePolicy: Fail
+    namespaceSelector:
+      matchLabels:
+        cosignkey.kubernetes.io/verify : enable
