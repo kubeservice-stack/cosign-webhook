@@ -1,0 +1,8 @@
+apiVersion: kubeservice.cn/v1
+kind: CosignKey
+metadata:
+  name: test-cosignkey-empty
+spec:
+  authorities:
+    key:
+    - adf

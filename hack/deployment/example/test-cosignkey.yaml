@@ -6,6 +6,8 @@ spec:
   authorities:
     key:
     - |
+      adf
+    - |
       -----BEGIN PUBLIC KEY-----
       ......
       -----END PUBLIC KEY-----   

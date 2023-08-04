@@ -18,11 +18,13 @@ package webhook
 
 import (
 	"context"
-	"fmt"
+	"net/http"
 
 	opt "github.com/google/go-containerregistry/pkg/authn/kubernetes"
+	"github.com/kubeservice-stack/cosign-webhook/pkg/util"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/api/errors"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 )
@@ -30,23 +32,31 @@ import (
 // log is for logging in this package.
 var podlog = logf.Log.WithName("pod-webhook-resource")
 
-// PodValidator validates Pods
-type PodValidator struct{}
+// PodAnnotator validates Pods
+type PodAnnotator struct {
+	Client  client.Client
+	decoder *admission.Decoder
+}
 
-// validate admits a pod if a specific annotation exists.
-func (v *PodValidator) validate(ctx context.Context, obj runtime.Object) (admission.Warnings, error) {
-	pod, ok := obj.(*corev1.Pod)
-	if !ok {
-		return nil, fmt.Errorf("expected a Pod but got a %T", obj)
+func NewPodAnnotatorMutate(c client.Client) admission.Handler {
+	return &PodAnnotator{Client: c}
+}
+
+// PodAnnotator adds an annotation to every incoming pods.
+func (a *PodAnnotator) Handle(ctx context.Context, req admission.Request) admission.Response {
+	podlog.Info("PodAnnotator", "req", req)
+	pod := &corev1.Pod{}
+
+	err := a.decoder.Decode(req, pod)
+	if err != nil {
+		return admission.Errored(http.StatusBadRequest, err)
 	}
 
-	// It looks for image fields with tags in these sequence nodes:
-	//   - `spec.containers`
-	//   - `spec.initContainers`
-	//   - `spec.template.spec.containers`
-	//   - `spec.template.spec.initContainers`
-	//   - `spec.jobTemplate.spec.template.spec.containers`
-	//   - `spec.jobTemplate.spec.template.spec.initContainers`
+	ns := req.Namespace
+	if ns == "" {
+		ns = "default"
+	}
+
 	var imagepullsecretstrings []string
 	for _, s := range pod.Spec.ImagePullSecrets {
 		imagepullsecretstrings = append(imagepullsecretstrings, s.Name)
@@ -59,31 +69,65 @@ func (v *PodValidator) validate(ctx context.Context, obj runtime.Object) (admiss
 	}
 
 	for _, ic := range pod.Spec.InitContainers {
-		_, err := Digest(ic.Image, opts)
+		_, err := util.Digest(ic.Image, opts)
 		if err != nil {
-			return nil, fmt.Errorf("Parse image Digest fail. err: %v", err)
+			return admission.Denied(err.Error())
 		}
-
+		ok, err := a.ValidationCosignVerify(ns, ic.Image)
+		if ok && err == nil {
+			continue
+		}
 	}
 
 	for _, ic := range pod.Spec.Containers {
-		_, err := Digest(ic.Image, opts)
+		_, err := util.Digest(ic.Image, opts)
 		if err != nil {
-			return nil, fmt.Errorf("Parse image Digest fail. err: %v", err)
+			return admission.Denied(err.Error())
+		}
+		ok, err := a.ValidationCosignVerify(ns, ic.Image)
+		if ok && err == nil {
+			continue
 		}
 	}
 
-	return nil, nil
+	return admission.Allowed("Check image cosign success")
 }
 
-func (v *PodValidator) ValidateCreate(ctx context.Context, obj runtime.Object) (admission.Warnings, error) {
-	return v.validate(ctx, obj)
+// InjectDecoder injects the decoder.
+func (a *PodAnnotator) InjectDecoder(d *admission.Decoder) error {
+	a.decoder = d
+	return nil
 }
 
-func (v *PodValidator) ValidateUpdate(ctx context.Context, oldObj, newObj runtime.Object) (admission.Warnings, error) {
-	return v.validate(ctx, newObj)
-}
+func (a *PodAnnotator) ValidationCosignVerify(namespace string, image string) (bool, error) {
+	clrl := &CosignKeyList{}
+	err := a.Client.List(context.Background(), clrl, client.InNamespace(namespace))
+	if err != nil {
+		podlog.Info("Get CosignKey Resource Error", "namespace", namespace, "resource name", WebhookName)
+		if errors.IsNotFound(err) {
+			return false, ErrMissingCosignCRD
+		}
+		return false, ErrMissingCosignCRD
+	}
 
-func (v *PodValidator) ValidateDelete(ctx context.Context, obj runtime.Object) (admission.Warnings, error) {
-	return v.validate(ctx, obj)
+	if len(clrl.Items) > 1 {
+		podlog.Info("Namespace has more than one CosignKey Resource", "count", len(clrl.Items))
+		return false, ErrInvalidCosignCRDMoreThanOne
+	} else if len(clrl.Items) <= 0 {
+		podlog.Info("Namespace not found CosignKey Resource")
+		return false, ErrMissingCosignCRDKeys
+	} else {
+		podlog.Info("PodAnnotator get CosignKey", "Cosign", clrl.Items[0].Spec)
+
+		for _, key := range clrl.Items[0].Spec.Auth.Key {
+			ok, err := util.VerifyPublicKey(image, key)
+			if ok && err == nil {
+				return true, nil
+			}
+			continue
+		}
+
+	}
+
+	return false, ErrInvalidCosignVerify
 }
