@@ -1,0 +1,19 @@
+apiVersion: apps/v1                                                                                                                                                 
+kind: Deployment
+metadata:
+  name: node-metrics
+spec:
+  selector:
+    matchLabels:
+      app: node-metrics
+  replicas: 1 # 告知 Deployment 运行 2 个与该模板匹配的 Pod
+  template:
+    metadata:
+      labels:
+        app: node-metrics
+    spec:
+      containers:
+      - name: nginx
+        image: dongjiang1989/node-metrics:latest
+        ports:
+        - containerPort: 9100

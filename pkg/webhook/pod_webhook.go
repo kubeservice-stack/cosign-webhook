@@ -38,8 +38,8 @@ type PodAnnotator struct {
 	decoder *admission.Decoder
 }
 
-func NewPodAnnotatorMutate(c client.Client) admission.Handler {
-	return &PodAnnotator{Client: c}
+func NewPodAnnotatorMutate(c client.Client, d *admission.Decoder) admission.Handler {
+	return &PodAnnotator{Client: c, decoder: d}
 }
 
 // PodAnnotator adds an annotation to every incoming pods.
@@ -91,12 +91,6 @@ func (a *PodAnnotator) Handle(ctx context.Context, req admission.Request) admiss
 	}
 
 	return admission.Allowed("Check image cosign success")
-}
-
-// InjectDecoder injects the decoder.
-func (a *PodAnnotator) InjectDecoder(d *admission.Decoder) error {
-	a.decoder = d
-	return nil
 }
 
 func (a *PodAnnotator) ValidationCosignVerify(namespace string, image string) (bool, error) {

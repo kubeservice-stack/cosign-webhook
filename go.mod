@@ -8,9 +8,9 @@ require (
 	github.com/google/go-containerregistry/pkg/authn/kubernetes v0.0.0-20230625233257-b8504803389b
 	github.com/sigstore/cosign v1.13.1
 	github.com/stretchr/testify v1.8.1
-	k8s.io/api v0.27.4
-	k8s.io/apimachinery v0.27.4
-	k8s.io/client-go v0.27.4
+	k8s.io/api v0.27.2
+	k8s.io/apimachinery v0.27.2
+	k8s.io/client-go v0.27.2
 	sigs.k8s.io/controller-runtime v0.15.0
 )
 
