@@ -20,6 +20,7 @@ spec:
       containers:
       - name: webhook-server
         image: dongjiang1989/cosign-webhook:master
+        imagePullPolicy: Always
         ports:
         - containerPort: 9443
           name: webhook
