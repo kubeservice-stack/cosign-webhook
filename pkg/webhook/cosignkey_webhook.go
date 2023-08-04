@@ -73,11 +73,18 @@ func (r *CustomCosignKey) ValidateCreate(ctx context.Context, obj runtime.Object
 		allErrs = append(allErrs, field.Invalid(field.NewPath("spec").Child("authorities"),
 			n.Spec.Auth,
 			err.Error()))
+		cosignkeylog.Info("validate cosignkey crd counter", "err", err, "field.ErrorList", allErrs)
+		return nil, errors.NewInvalid(n.GroupVersionKind().GroupKind(), n.Name, allErrs)
 	}
+
 	if len(allErrs) == 0 && counter == 0 && len(n.Spec.Auth.Key) >= 1 {
 		return nil, nil
 	}
-	cosignkeylog.Info("validate cosignkey crd counter", "err", err, "field.ErrorList", allErrs)
+
+	allErrs = append(allErrs, field.Invalid(field.NewPath("spec", "authorities").Child("key"),
+		n.Spec.Auth.Key,
+		ErrMissingCosignCRDKeys.Error()))
+	cosignkeylog.Info("validate cosignkey crd Key counter", "field.ErrorList", allErrs)
 	return nil, errors.NewInvalid(n.GroupVersionKind().GroupKind(), n.Name, allErrs)
 }
 
@@ -102,6 +109,10 @@ func getCRDCounter(c client.Reader, namespace string) (int, error) {
 			return 0, nil
 		}
 		return 0, ErrMissingCosignCRD
+	}
+
+	if len(clrl.Items) >= 1 {
+		return len(clrl.Items), ErrInvalidCosignCRDMoreThanOne
 	}
 
 	return len(clrl.Items), nil

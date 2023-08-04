@@ -32,4 +32,5 @@ var (
 	ErrInvalidAdmissionReview      = errors.New("invalid admission review error")
 	ErrInvalidAdmissionReviewObj   = errors.New("invalid admission review object error")
 	ErrMissingCosignCRD            = errors.New("invalid cosignkey CRD not find in cluster")
+	ErrMissingCosignCRDKeys        = errors.New("invalid cosignkey CRD key counter iz zero in cluster")
 )

@@ -5,9 +5,9 @@ metadata:
   namespace: cosign
 spec:
   dnsNames:
-  - cosignkey-webhook-service.cosign.svc
-  - cosignkey-webhook-service.cosign.svc.cluster.local
+  - cosignkey-webhook.cosign.svc
+  - cosignkey-webhook.cosign.svc.cluster.local
   issuerRef:
     kind: Issuer
-    name: selfsigned-issuer
+    name: cosignkey-selfsigned-issuer
   secretName: cosignkey-webhook-server-cert
