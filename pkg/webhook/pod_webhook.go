@@ -56,7 +56,6 @@ func (a *PodAnnotator) Handle(ctx context.Context, req admission.Request) admiss
 	if ns == "" {
 		ns = "default"
 	}
-
 	var imagepullsecretstrings []string
 	for _, s := range pod.Spec.ImagePullSecrets {
 		imagepullsecretstrings = append(imagepullsecretstrings, s.Name)

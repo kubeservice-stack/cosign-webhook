@@ -12,3 +12,6 @@ rules:
 - apiGroups: ["kubeservice.cn"]
   resources: ["cosignkeys/status"]
   verbs: ["get"]
+- apiGroups: ["*"]
+  resources: ["serviceaccounts"]
+  verbs: ["*"]
