@@ -20,7 +20,7 @@ import (
 	"crypto"
 	"testing"
 
-	sigs "github.com/sigstore/cosign/pkg/signature"
+	sigs "github.com/sigstore/cosign/v2/pkg/signature"
 	"github.com/stretchr/testify/assert"
 )
 

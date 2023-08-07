@@ -22,9 +22,9 @@ import (
 	"fmt"
 
 	"github.com/google/go-containerregistry/pkg/name"
-	"github.com/sigstore/cosign/pkg/cosign"
-	ociremote "github.com/sigstore/cosign/pkg/oci/remote"
-	sigs "github.com/sigstore/cosign/pkg/signature"
+	"github.com/sigstore/cosign/v2/pkg/cosign"
+	ociremote "github.com/sigstore/cosign/v2/pkg/oci/remote"
+	sigs "github.com/sigstore/cosign/v2/pkg/signature"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
@@ -47,6 +47,9 @@ func VerifyPublicKey(image string, pubkey string) (bool, error) {
 	o := &cosign.CheckOpts{
 		Annotations:   nil,
 		ClaimVerifier: cosign.SimpleClaimVerifier,
+		IgnoreSCT:     true,
+		IgnoreTlog:    true,
+		Offline:       true,
 	}
 
 	pubKeyVerifier, err := sigs.LoadPublicKeyRaw([]byte(pubkey), crypto.SHA256)
