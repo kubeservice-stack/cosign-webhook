@@ -3,7 +3,7 @@ module github.com/kubeservice-stack/cosign-webhook
 go 1.19
 
 require (
-	github.com/docker/distribution v2.8.1+incompatible
+	github.com/docker/distribution v2.8.2+incompatible
 	github.com/google/go-containerregistry v0.15.2
 	github.com/google/go-containerregistry/pkg/authn/kubernetes v0.0.0-20230625233257-b8504803389b
 	github.com/sigstore/cosign v1.13.1

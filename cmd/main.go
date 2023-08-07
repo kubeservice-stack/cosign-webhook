@@ -36,8 +36,9 @@ import (
 )
 
 var (
-	scheme   = runtime.NewScheme()
-	setupLog = ctrl.Log.WithName("setup")
+	scheme    = runtime.NewScheme()
+	setupLog  = ctrl.Log.WithName("setup")
+	cosignURK = "/mutate-cosign-verify"
 )
 
 func init() {
@@ -98,7 +99,7 @@ func main() {
 			os.Exit(1)
 		}
 	*/
-	mgr.GetWebhookServer().Register("/mutate-cosign-verify", &webhook.Admission{Handler: wk1.NewPodAnnotatorMutate(mgr.GetClient(), admission.NewDecoder(scheme))})
+	mgr.GetWebhookServer().Register(cosignURK, &webhook.Admission{Handler: wk1.NewPodAnnotatorMutate(mgr.GetClient(), admission.NewDecoder(scheme))})
 
 	if err = (&wk1.CustomCosignKey{Client: mgr.GetClient()}).SetupWebhookWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create webhook", "webhook", "CosignKey")
