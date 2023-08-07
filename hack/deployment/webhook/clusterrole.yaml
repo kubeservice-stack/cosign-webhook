@@ -15,3 +15,6 @@ rules:
 - apiGroups: ["*"]
   resources: ["serviceaccounts"]
   verbs: ["*"]
+- apiGroups: ["*"]
+  resources: ["services"]
+  verbs: ["get", "watch", "list"]
