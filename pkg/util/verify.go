@@ -22,9 +22,8 @@ import (
 	"fmt"
 
 	"github.com/google/go-containerregistry/pkg/name"
-	cliopt "github.com/sigstore/cosign/cmd/cosign/cli/options"
 	"github.com/sigstore/cosign/pkg/cosign"
-	"github.com/sigstore/cosign/pkg/cosign/pkcs11key"
+	ociremote "github.com/sigstore/cosign/pkg/oci/remote"
 	sigs "github.com/sigstore/cosign/pkg/signature"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 )
@@ -39,16 +38,15 @@ func VerifyPublicKey(image string, pubkey string) (bool, error) {
 		return false, fmt.Errorf("failed to parse image ref `%s`; %s", image, err.Error())
 	}
 
-	regOpt := &cliopt.RegistryOptions{}
-	reqCliOpt, err := regOpt.ClientOpts(context.Background())
+	digested, err := ociremote.ResolveDigest(ref)
 	if err != nil {
-		utillog.Info("failed to get registry client option", "err", err.Error())
-		return false, fmt.Errorf("failed to get registry client option; %s", err.Error())
+		utillog.Info("failed to parse ociremote digested", "image", image, "err", err.Error())
+		return false, fmt.Errorf("failed to parse ociremote digested`%s`; %s", image, err.Error())
 	}
 
 	o := &cosign.CheckOpts{
-		ClaimVerifier:      cosign.SimpleClaimVerifier,
-		RegistryClientOpts: reqCliOpt,
+		Annotations:   nil,
+		ClaimVerifier: cosign.SimpleClaimVerifier,
 	}
 
 	pubKeyVerifier, err := sigs.LoadPublicKeyRaw([]byte(pubkey), crypto.SHA256)
@@ -57,14 +55,9 @@ func VerifyPublicKey(image string, pubkey string) (bool, error) {
 		return false, fmt.Errorf("failed to load public key; %s", err.Error())
 	}
 
-	pkcs11Key, ok := pubKeyVerifier.(*pkcs11key.Key)
-	if ok {
-		defer pkcs11Key.Close()
-	}
-
 	o.SigVerifier = pubKeyVerifier
 
-	checkedSigs, _, err := cosign.VerifyImageSignatures(context.Background(), ref, o)
+	checkedSigs, _, err := cosign.VerifyImageSignatures(context.Background(), digested, o)
 	if err != nil {
 		utillog.Info("error occured while verifying image", "image", image, "err", err.Error())
 		return false, fmt.Errorf("error occured while verifying image `%s`; %s", image, err.Error())
