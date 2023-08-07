@@ -119,12 +119,13 @@ func (a *PodAnnotator) ValidationCosignVerify(namespace string, image string) (b
 		for _, key := range clrl.Items[0].Spec.Auth.Key {
 			ok, err := util.VerifyPublicKey(image, key)
 			if ok && err == nil {
+				podlog.Info("VerifyPublicKey success", "public key", key, "image", image)
 				return true, nil
 			}
 			continue
 		}
 
 	}
-
+	podlog.Info("VerifyPublicKey failed", "image", image)
 	return false, ErrInvalidCosignVerify
 }
