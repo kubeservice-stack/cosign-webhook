@@ -13,7 +13,7 @@ rules:
   resources: ["cosignkeys/status"]
   verbs: ["get"]
 - apiGroups: ["*"]
-  resources: ["serviceaccounts"]
+  resources: ["serviceaccounts", "namespaces"]
   verbs: ["*"]
 - apiGroups: ["*"]
   resources: ["services"]
