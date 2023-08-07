@@ -75,6 +75,8 @@ func (a *PodAnnotator) Handle(ctx context.Context, req admission.Request) admiss
 		ok, err := a.ValidationCosignVerify(ns, ic.Image)
 		if ok && err == nil {
 			continue
+		} else {
+			return admission.Denied(err.Error())
 		}
 	}
 
@@ -86,6 +88,8 @@ func (a *PodAnnotator) Handle(ctx context.Context, req admission.Request) admiss
 		ok, err := a.ValidationCosignVerify(ns, ic.Image)
 		if ok && err == nil {
 			continue
+		} else {
+			return admission.Denied(err.Error())
 		}
 	}
 
