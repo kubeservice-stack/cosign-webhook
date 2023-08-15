@@ -8,6 +8,9 @@ on:
   pull_request:
     branches: [ "master" ]
 
+env:
+  REGISTRY: docker.io
+
 jobs:
   generate-jobs:
     name: cosign-webhook
@@ -39,8 +42,9 @@ jobs:
         name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
       - name: Log in to the Container registry
-        uses: docker/login-action@v2
+        uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
         with:
+          registry: ${{ env.REGISTRY }}
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       -
@@ -51,7 +55,8 @@ jobs:
           platforms: ${{ matrix.platforms }}
           push: true
           tags: |
+            ${{ env.REGISTRY }}/${{ matrix.image }}:${{steps.git-branch.outputs.git-branch}}
             ${{ env.REGISTRY }}/${{ matrix.image }}:latest
       - name: Test ${{ matrix.name }}
         run: |
-          docker image inspect ${{ env.REGISTRY }}/${{ matrix.image}}:${{steps.git-branch.outputs.git-branch}}
+          docker pull ${{ env.REGISTRY }}/${{ matrix.image}}:${{steps.git-branch.outputs.git-branch}}
